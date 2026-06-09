@@ -17,6 +17,20 @@ describe('CLI calculator functions', () => {
     expect(divide(20, 5)).toBe(4);
   });
 
+  // Examples from image: extended operations
+  test('modulo: 5 % 2 = 1', () => {
+    expect(modulo(5, 2)).toBe(1);
+  });
+
+  test('power: 2 ^ 3 = 8', () => {
+    expect(power(2, 3)).toBe(8);
+  });
+
+  test('sqrt: sqrt(16) = 4', () => {
+    expect(squareRoot(16)).toBe(4);
+  });
+
+  // previous extra tests
   test('modulo: 10 % 3 = 1', () => {
     expect(modulo(10, 3)).toBe(1);
   });

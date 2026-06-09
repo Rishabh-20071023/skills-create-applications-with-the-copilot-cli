@@ -1,4 +1,4 @@
-const { add, subtract, multiply, divide } = require('../calculator');
+const { add, subtract, multiply, divide, modulo, power, squareRoot } = require('../calculator');
 
 describe('CLI calculator functions', () => {
   test('addition: 2 + 3 = 5', () => {
@@ -15,6 +15,18 @@ describe('CLI calculator functions', () => {
 
   test('division: 20 / 5 = 4', () => {
     expect(divide(20, 5)).toBe(4);
+  });
+
+  test('modulo: 10 % 3 = 1', () => {
+    expect(modulo(10, 3)).toBe(1);
+  });
+
+  test('power: 2 ^ 8 = 256', () => {
+    expect(power(2, 8)).toBe(256);
+  });
+
+  test('sqrt: sqrt(9) = 3', () => {
+    expect(squareRoot(9)).toBe(3);
   });
 
   test('addition with many args', () => {
@@ -35,6 +47,14 @@ describe('CLI calculator functions', () => {
 
   test('division by zero throws', () => {
     expect(() => divide(5, 0)).toThrow(/division by zero/i);
+  });
+
+  test('modulo by zero throws', () => {
+    expect(() => modulo(5, 0)).toThrow(/modulo by zero/i);
+  });
+
+  test('sqrt negative throws', () => {
+    expect(() => squareRoot(-4)).toThrow(/negative/i);
   });
 
   test('non-numeric input throws', () => {

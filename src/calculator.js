@@ -6,10 +6,43 @@
 //  - multiplication (multiply or *)
 //  - division (divide or /)
 
-const [,, op, ...args] = process.argv;
+// Pure functions exported for testing and reuse
+function add(...nums) {
+  if (nums.length < 2) throw new Error('add requires at least two numeric arguments');
+  if (nums.some(n => Number.isNaN(Number(n)))) throw new Error('add received non-numeric argument');
+  return nums.reduce((s, n) => s + Number(n), 0);
+}
 
-function printUsage() {
-  console.log(`Usage:
+function subtract(...nums) {
+  if (nums.length < 2) throw new Error('subtract requires at least two numeric arguments');
+  if (nums.some(n => Number.isNaN(Number(n)))) throw new Error('subtract received non-numeric argument');
+  const numbers = nums.map(Number);
+  return numbers.slice(1).reduce((acc, n) => acc - n, numbers[0]);
+}
+
+function multiply(...nums) {
+  if (nums.length < 2) throw new Error('multiply requires at least two numeric arguments');
+  if (nums.some(n => Number.isNaN(Number(n)))) throw new Error('multiply received non-numeric argument');
+  return nums.map(Number).reduce((p, n) => p * n, 1);
+}
+
+function divide(...nums) {
+  if (nums.length < 2) throw new Error('divide requires at least two numeric arguments');
+  if (nums.some(n => Number.isNaN(Number(n)))) throw new Error('divide received non-numeric argument');
+  const numbers = nums.map(Number);
+  if (numbers.slice(1).some(n => n === 0)) throw new Error('division by zero');
+  return numbers.slice(1).reduce((acc, n) => acc / n, numbers[0]);
+}
+
+// Export functions for tests and programmatic use
+module.exports = { add, subtract, multiply, divide };
+
+// --- CLI wrapper (preserve original behavior) ---
+if (require.main === module) {
+  const [,, op, ...args] = process.argv;
+
+  function printUsage() {
+    console.log(`Usage:
   node src/calculator.js add 2 3       # -> 5
   node src/calculator.js subtract 5 2  # -> 3
   node src/calculator.js multiply 4 6  # -> 24
@@ -18,66 +51,51 @@ function printUsage() {
 Aliases supported: + - * /
 Accepts two or more numeric arguments (for add/multiply can accept many).
 `);
-}
+  }
 
-if (!op) {
-  printUsage();
-  process.exitCode = 1;
-  return;
-}
+  if (!op) {
+    printUsage();
+    process.exitCode = 1;
+  } else {
+    const opNormalized = op.toLowerCase();
 
-const opNormalized = op.toLowerCase();
-const nums = args.map(a => Number(a));
+    try {
+      let result;
+      switch (opNormalized) {
+        case 'add':
+        case '+':
+          result = add(...args);
+          break;
+        case 'subtract':
+        case '-':
+          result = subtract(...args);
+          break;
+        case 'multiply':
+        case '*':
+        case 'x':
+        case '×':
+          result = multiply(...args);
+          break;
+        case 'divide':
+        case '/':
+          result = divide(...args);
+          break;
+        case 'help':
+        case '--help':
+        case '-h':
+          printUsage();
+          process.exit(0);
+        default:
+          console.error(`Unknown operation: ${op}`);
+          printUsage();
+          process.exitCode = 4;
+      }
 
-if (nums.length < 2 || nums.some(n => Number.isNaN(n))) {
-  console.error('Error: provide at least two numeric arguments.');
-  printUsage();
-  process.exitCode = 2;
-  return;
-}
-
-let result;
-switch (opNormalized) {
-  case 'add':
-  case '+':
-    // addition: sum all arguments
-    result = nums.reduce((s, n) => s + n, 0);
-    break;
-  case 'subtract':
-  case '-':
-    // subtraction: subtract subsequent args from the first
-    result = nums.slice(1).reduce((acc, n) => acc - n, nums[0]);
-    break;
-  case 'multiply':
-  case '*':
-  case 'x':
-  case '×':
-    // multiplication: product of all args
-    result = nums.reduce((p, n) => p * n, 1);
-    break;
-  case 'divide':
-  case '/':
-    // division: divide the first by each of the following sequentially
-    if (nums.slice(1).some(n => n === 0)) {
-      console.error('Error: division by zero is not allowed.');
-      process.exitCode = 3;
-      break;
+      if (result !== undefined) console.log(result);
+    } catch (err) {
+      console.error('Error:', err.message);
+      if (/division by zero/i.test(err.message)) process.exitCode = 3;
+      else process.exitCode = 2;
     }
-    result = nums.slice(1).reduce((acc, n) => acc / n, nums[0]);
-    break;
-  case 'help':
-  case '--help':
-  case '-h':
-    printUsage();
-    process.exitCode = 0;
-    process.exit();
-  default:
-    console.error(`Unknown operation: ${op}`);
-    printUsage();
-    process.exitCode = 4;
-}
-
-if (result !== undefined) {
-  // Print result to stdout
-  console.log(result);
+  }
 }
